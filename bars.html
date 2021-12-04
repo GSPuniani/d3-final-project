@@ -14,13 +14,63 @@
         <script>
             async function handleData() {
                 const data = await d3.csv('acquisitions_update_2021.csv')
-                console.log(data)
                 const margin = { top: 10, right: 10, bottom: 20, left: 40 }
                 const width = 600 - (margin.left + margin.right)
                 const height = 400 - (margin.top + margin.bottom)
+                
+
+                const getAcquisitionCountByCompany = (data, company) => {
+                    const acquisitions = data.filter(acquisition => acquisition["Parent Company"] === company)
+                    return acquisitions.length
+                }
+                const namesAndValues = Array.from(new Set(data.map(acquisition => acquisition["Parent Company"]))).map(name => {
+                    return {name, value: 0}
+                })
+                namesAndValues.forEach((company) => company.value = getAcquisitionCountByCompany(data, company.name))
+                
+                // const namesAndValues = data.map(acquisition => {
+                //     const acquisitions = getAcquisitionCountByCompany(data, acquisition["Parent Company"])
+                //     return {name: acquisition["Parent Company"], value: acquisitions}
+                // })
+                console.log(namesAndValues)
+
+                // x scale 
+                const xscale = d3.scaleBand()
+                    .domain(namesAndValues.map(d => d.name))
+                    .range([margin.left, width + margin.left])
+                    .padding(0.05)
+
+                
+                // y scale 
+                const acquisitionExtent = d3.extent(namesAndValues, d => d.value)
+                const yscale = d3.scaleLinear()
+                    .domain(acquisitionExtent)
+                    .range([height - margin.bottom, margin.top])
+
+
+                // Select the SVG
+                const svg = d3.select('#svg')
+
+                const barGroup = svg.append('g')
+
+                // Make the bars
+                barGroup 
+                    .selectAll('rect')
+                    .data(namesAndValues)
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'bar')
+                    .attr('x', (d, i) => xscale(d.name))
+                    .attr('y', d => yscale(d.value))
+                    .attr('width', xscale.bandwidth())
+                    .attr('height', d => height - yscale(d.value))
+
+
             }
 
             handleData()
+
+
 
                 
 
