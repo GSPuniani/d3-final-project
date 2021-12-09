@@ -8,14 +8,20 @@
     </head>
     <body>
 
-        <!-- Total acquisitions for all companies over whole time period -->
-        <svg id="svg1" width="1000" height="700" style="display: none;"></svg>
+        <div>
+            <p>Total acquisitions for all companies (1957 - 2021)</p>
+            <svg id="svg1" width="1000" height="700"></svg>
+        </div>
 
-        <!-- Total acquisitions for one company over whole time period -->
-        <svg id="svg2" width="1000" height="700"></svg>
+        <div>
+            <p>Total acquisitions for one company (1957 - 2021)</p>
+            <svg id="svg2" width="1000" height="700"></svg>
+        </div>
 
-        <!-- Total acquisitions for all companies over one year -->
-        <svg id="svg3" width="1000" height="700"></svg>
+        <div>
+            <p>Total acquisitions for all companies over one year</p>
+            <svg id="svg3" width="1000" height="700"></svg>
+        </div>
 
 
         <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -94,7 +100,11 @@
                     .call(leftAxis1)
 
 
+
+
                 // Second bar graph
+
+                const monthsInOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "-"]
 
                 // Calculate total number of acquisitions for each company
                 const getAcquisitionCountByMonth = (data, month) => {
@@ -104,16 +114,23 @@
                 }
 
                 // Create an object with unique parent companies
-                const monthsAndValues = Array.from(new Set(data.map(acquisition => acquisition["Parent Company"]))).map(name => {
+                const monthsAndValues = Array.from(new Set(data.map(acquisition => acquisition["Acquisition Month"]))).map(name => {
                     return {name, value: 0}
                 })
                 // Add acquisition counts to the object
                 monthsAndValues.forEach((month) => month.value = getAcquisitionCountByCompany(data, month))
 
+                const orderedMonthsAndValues = Object.keys(monthsAndValues).sort().reduce(
+                    (obj, key) => { 
+                        obj[key] = monthsAndValues[key]; 
+                        return obj;
+                    }, 
+                    {}
+                );
+
                 // x scale 
-                const monthExtent = d3.extent(data, d => d["Acquisition Month"])
                 const xscale2 = d3.scaleBand()
-                    .domain(monthExtent)
+                    .domain(monthsAndValues.map(d => d.name))
                     .range([margin.left, width + margin.left])
                     .padding(0.25)
 
@@ -137,7 +154,12 @@
                     .enter()
                     .append('rect')
                     .attr('class', 'bar')
-                    .attr('x', (d, i) => xscale2(d.name))
+                    .attr('x', (d, i) => {
+                        console.log(d.name)
+                        console.log(d)
+                        console.log(xscale2(d.name))
+                        return xscale2(d.name)
+                    })
                     .attr('y', d => yscale2(d.value))
                     .attr('width', xscale2.bandwidth())
                     .attr('height', d => height - yscale2(d.value))
