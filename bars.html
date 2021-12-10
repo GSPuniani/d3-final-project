@@ -18,17 +18,18 @@
 
         <h1 style="padding: 10px;">Mergers and Acquisitions in the Tech Industry</h1>
 
-        <div style="margin: auto; width: fit-content; padding: 15px 0 20px 0">
+        <div style="margin: auto; width: fit-content; padding: 15px 0 50px 0">
             <h3 style="text-align: center;">Total acquisitions for all companies (1957 - 2021)</h3>
             <svg id="svg1" width="1000" height="700"></svg>
         </div>
 
-        <div style="margin: auto; width: fit-content; padding: 20px 0 20px 0">
-            <h3 style="text-align: center;">Total acquisitions for all companies over one year</h3>
-            <svg id="svg2" width="1000" height="700"></svg>
+        <div style="margin: auto; width: fit-content; padding: 50px 0 50px 0" id="bar2">
+            <h3 style="text-align: center;" id="bar2-header">Total acquisitions for all companies over one year</h3>
+            <svg id="svg2" width="1000" height="500"></svg>
+            <p>Select year using the dropdown menu.</p>
         </div>
 
-        <div style="margin: auto; width: fit-content; padding: 20px 0 20px 0">
+        <div style="margin: auto; width: fit-content; padding: 50px 0 20px 0">
             <h3 style="text-align: center;">Total acquisitions per year (1957 - 2021)</h3>
             <svg id="svg3" width="1000" height="700"></svg>
         </div>
@@ -119,11 +120,30 @@
 
                 // Second bar graph
 
+                // Dropdown menu for year selection
+                var select = d3.select('#bar2')
+                    .append('select')
+                    .attr('class','select')
+                    .on('change',onchange)
+
+                var options = select
+                    .selectAll('option')
+                    .data(Array.from(new Set(data.map(acquisition => acquisition["Acquisition Year"]))).sort()).enter()
+                    .append('option')
+                        .text(function (d) { return d; });
+
+                function onchange() {
+                    selectValue = d3.select('select').property('value')
+                    d3.select('#bar2-header')
+                        .text(`Total acquisitions for all companies (${selectValue})`)
+                };
+
                 const monthsInOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "-"]
 
                 // Calculate total number of acquisitions for each company
                 const getAcquisitionCountByMonth = (data, month) => {
-                    const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && acquisition["Acquisition Year"] === "2018"))
+                    const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && acquisition["Acquisition Year"] === String(d3.select('select').property('value'))))
+                    console.log(String(d3.select('select').property('value')))
                     return acquisitions.length
                 }
 
@@ -153,7 +173,7 @@
                 const acquisitionExtentByMonth = d3.extent(monthsAndValues, d => d.value)
                 const yscale2 = d3.scaleLinear()
                     .domain(acquisitionExtentByMonth)
-                    .range([height - margin.bottom, margin.top])
+                    .range([height - margin.bottom - 200, margin.top])
 
 
                 // Select the SVG
@@ -173,23 +193,26 @@
                     })
                     .attr('y', d => yscale2(d.value))
                     .attr('width', xscale2.bandwidth())
-                    .attr('height', d => height - yscale2(d.value))
+                    .attr('height', d => height - yscale2(d.value) - 200)
 
 
                 // Add bottom labels to x-axis
                 const bottomAxis2 = d3.axisBottom(xscale2)
                 svg2
                     .append('g')
-                    .attr('transform', `translate(${0}, ${height})`)
+                    .attr('transform', `translate(${0}, ${height - 200})`)
                     .call(bottomAxis2)
 
 
                 // Add side labels to y-axis
                 const leftAxis2 = d3.axisLeft(yscale2)
+                    .tickFormat(d3.format('.0f'))
                 svg2
                     .append('g')
                     .attr('transform', `translate(${margin.left}, 0)`)
                     .call(leftAxis2)
+
+                
 
 
 
