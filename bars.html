@@ -206,8 +206,10 @@
                 yearsAndValues.forEach((year) => year.value = getAcquisitionCountByYear(data, year.name))
 
                 const parseTime = d3.timeParse('%Y')
+                const filteredData = data.filter(d => d["Acquisition Year"] !== "-")
+                filteredData.forEach(d => d["Acquisition Year"] = parseTime(d["Acquisition Year"]))
                 // Find the extents of the dates
-                const dateExtent = d3.extent(data, d => parseTime(d["Acquisition Year"]))
+                const dateExtent = d3.extent(filteredData, d => d["Acquisition Year"])
                 // x scale 
                 const xscale3 = d3.scaleTime() // Make a time scale!
                     .domain(dateExtent)
@@ -222,8 +224,8 @@
 
                 // line generator
                 const linegen = d3.line()
-                    .x(d => xscale(d.name))
-                    .y(d => yscale(d.value))
+                    .x(d => xscale3(d.name))
+                    .y(d => yscale3(d.value))
                     .curve(d3.curveLinear)
 
 
@@ -259,6 +261,18 @@
                     .append('g')
                     .attr('transform', `translate(${margin}, 0)`)
                     .call(leftAxis3)
+
+                // Scatter plot
+                svg3
+                    .append('g')
+                    .selectAll('circle')
+                    .data(yearsAndValues)
+                    .enter()
+                    .append('circle')
+                    .attr('cx', d => xscale3(d.name))
+                    .attr('cy', d => yscale3(d.value))
+                    .attr('r', 3)
+
 
             }
 
