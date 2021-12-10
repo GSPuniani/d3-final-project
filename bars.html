@@ -29,7 +29,7 @@
         </div>
 
         <div style="margin: auto; width: fit-content; padding: 20px 0 20px 0">
-            <h3 style="text-align: center;">Total acquisitions for one company (1957 - 2021)</h3>
+            <h3 style="text-align: center;">Total acquisitions per year (1957 - 2021)</h3>
             <svg id="svg3" width="1000" height="700"></svg>
         </div>
 
@@ -75,6 +75,11 @@
                     .range([height - margin.bottom, margin.top])
 
 
+                const colorScale1 = d3.scaleOrdinal()
+                    .domain(namesAndValues.map(d => d.name))
+                    .range(['#555555', '#1DA1F2', '#FF9900', '#0096D6', '#0F9D58', '#F25022', '#000000', '#E53238', '#006699', '#FF0000', '#4267B2', '#EE0000', '#113CCF', '#452170'])
+
+                
                 // Select the SVG
                 const svg1 = d3.select('#svg1')
 
@@ -91,6 +96,7 @@
                     .attr('y', d => yscale1(d.value))
                     .attr('width', xscale1.bandwidth())
                     .attr('height', d => height - yscale1(d.value))
+                    .attr('fill', d => colorScale1(d.name))
 
 
                 // Add bottom labels to x-axis
