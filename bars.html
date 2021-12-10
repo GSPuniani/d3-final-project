@@ -60,7 +60,6 @@
                 //     const acquisitions = getAcquisitionCountByCompany(data, acquisition["Parent Company"])
                 //     return {name: acquisition["Parent Company"], value: acquisitions}
                 // })
-                console.log(namesAndValues)
 
                 // x scale 
                 const xscale1 = d3.scaleBand()
@@ -118,8 +117,7 @@
 
                 // Calculate total number of acquisitions for each company
                 const getAcquisitionCountByMonth = (data, month) => {
-                    const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && 
-                        acquisition["Acquisition Year"] === 2010))
+                    const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && acquisition["Acquisition Year"] === "2018"))
                     return acquisitions.length
                 }
 
@@ -128,7 +126,7 @@
                     return {name, value: 0}
                 })
                 // Add acquisition counts to the object
-                monthsAndValues.forEach((month) => month.value = getAcquisitionCountByCompany(data, month))
+                monthsAndValues.forEach((month) => month.value = getAcquisitionCountByMonth(data, month.name))
 
                 const orderedMonthsAndValues = Object.keys(monthsAndValues).sort().reduce(
                     (obj, key) => { 
@@ -165,9 +163,6 @@
                     .append('rect')
                     .attr('class', 'bar')
                     .attr('x', (d, i) => {
-                        console.log(d.name)
-                        console.log(d)
-                        console.log(xscale2(d.name))
                         return xscale2(d.name)
                     })
                     .attr('y', d => yscale2(d.value))
@@ -189,6 +184,81 @@
                     .append('g')
                     .attr('transform', `translate(${margin.left}, 0)`)
                     .call(leftAxis2)
+
+
+
+
+                
+                // Line graph / scatter plot for all companies across whole time span
+
+
+                // Calculate total number of acquisitions for each year
+                const getAcquisitionCountByYear = (data, year) => {
+                    const acquisitions = data.filter(acquisition => acquisition["Acquisition Year"] === year)
+                    return acquisitions.length
+                }
+
+                // Create an object with unique parent companies
+                const yearsAndValues = Array.from(new Set(data.map(acquisition => acquisition["Acquisition Year"]))).map(name => {
+                    return {name, value: 0}
+                })
+                // Add acquisition counts to the object
+                yearsAndValues.forEach((year) => year.value = getAcquisitionCountByYear(data, year.name))
+
+                const parseTime = d3.timeParse('%Y')
+                // Find the extents of the dates
+                const dateExtent = d3.extent(data, d => parseTime(d["Acquisition Year"]))
+                // x scale 
+                const xscale3 = d3.scaleTime() // Make a time scale!
+                    .domain(dateExtent)
+                    .range([margin, width - margin]) // Use the width and margin!
+                    .nice() // Rounds the scale "nicely"
+                
+                // y scale 
+                const yearExtent = d3.extent(yearsAndValues, d => d.value)
+                const yscale3 = d3.scaleLinear()
+                    .domain(yearExtent)
+                    .range([height - margin.bottom, margin.top])
+
+                // line generator
+                const linegen = d3.line()
+                    .x(d => xscale(d.name))
+                    .y(d => yscale(d.value))
+                    .curve(d3.curveLinear)
+
+
+                // Select the SVG
+                const svg3 = d3.select('#svg3')
+
+                // Make a group for the graph
+                const graph = svg3
+                    .append('g')
+                
+                // Use the group to append the path and generate a line.
+                graph
+                    .append('path')
+                    .attr('d', linegen(yearsAndValues))
+                    .attr('stroke-width', 1)
+                    .attr('stroke', 'cornflowerblue')
+                    .attr('fill', 'none')
+
+                // This makes generator
+                const bottomAxis3 = d3.axisBottom(xscale3)
+                const leftAxis3 = d3.axisLeft(yscale3)
+
+                // Append a group and add the bottom axis 
+                svg3
+                    .append('g')
+                    // Position the group
+                    .attr('transform', `translate(0, ${height - margin})`)
+                    // generate the axis in the group
+                    .call(bottomAxis3)
+
+                // Append the group and add the left axis
+                svg3
+                    .append('g')
+                    .attr('transform', `translate(${margin}, 0)`)
+                    .call(leftAxis3)
 
             }
 
