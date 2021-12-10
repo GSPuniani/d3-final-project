@@ -136,14 +136,18 @@
                     selectValue = d3.select('select').property('value')
                     d3.select('#bar2-header')
                         .text(`Total acquisitions for all companies (${selectValue})`)
+                    return selectValue
                 };
 
                 const monthsInOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "-"]
 
                 // Calculate total number of acquisitions for each company
                 const getAcquisitionCountByMonth = (data, month) => {
-                    const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && acquisition["Acquisition Year"] === String(d3.select('select').property('value'))))
-                    console.log(String(d3.select('select').property('value')))
+                    const header2 = document.getElementById("bar2-header")
+                    const header2text = header2.innerText
+                    // const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && acquisition["Acquisition Year"] === header2text.substr(-5, -1)))
+                    const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && acquisition["Acquisition Year"] === onchange()))
+                    console.log(header2text.substr(-5, -1))
                     return acquisitions.length
                 }
 
@@ -154,13 +158,14 @@
                 // Add acquisition counts to the object
                 monthsAndValues.forEach((month) => month.value = getAcquisitionCountByMonth(data, month.name))
 
-                const orderedMonthsAndValues = Object.keys(monthsAndValues).sort().reduce(
-                    (obj, key) => { 
-                        obj[key] = monthsAndValues[key]; 
-                        return obj;
-                    }, 
-                    {}
-                );
+                function sortObj(obj) {
+                    return Object.keys(obj).sort().reduce(function (result, key) {
+                        result[key] = obj[key];
+                        return result;
+                    }, {});
+                    }
+                const orderedMonthsAndValues = sortObj(monthsAndValues)
+                console.log(orderedMonthsAndValues)
 
                 // x scale 
                 const xscale2 = d3.scaleBand()
@@ -174,6 +179,10 @@
                 const yscale2 = d3.scaleLinear()
                     .domain(acquisitionExtentByMonth)
                     .range([height - margin.bottom - 200, margin.top])
+
+                const colorScale2 = d3.scaleSequential()
+                    .domain(monthsAndValues.map(d => d.name))
+                    .interpolator(d3.interpolatePlasma)
 
 
                 // Select the SVG
@@ -194,6 +203,7 @@
                     .attr('y', d => yscale2(d.value))
                     .attr('width', xscale2.bandwidth())
                     .attr('height', d => height - yscale2(d.value) - 200)
+                    .attr('fill', d => colorScale2(d.name))
 
 
                 // Add bottom labels to x-axis
