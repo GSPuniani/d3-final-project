@@ -138,6 +138,8 @@
                         .text(`Total acquisitions for all companies (${selectYear})`)
                     // getAcquisitionCountByMonth after getting selected year
                     monthsAndValues.forEach((month) => month.value = getAcquisitionCountByMonth(data, month.name, selectYear))
+                    // Remove old bars
+                    barGroup2.selectAll('rect').remove()
                     // Call drawBars
                     drawBars()
                     // return selectValue
@@ -148,7 +150,6 @@
                 // Calculate total number of acquisitions for each company
                 const getAcquisitionCountByMonth = (data, month, year) => {
                     const acquisitions = data.filter(acquisition => (acquisition["Acquisition Month"] === month && acquisition["Acquisition Year"] === year))
-                    // console.log(header2text.substr(-5, -1))
                     return acquisitions.length
                 }
 
@@ -170,12 +171,13 @@
                 // y scale 
                 const acquisitionExtentByMonth = d3.extent(monthsAndValues, d => d.value)
                 const yscale2 = d3.scaleLinear()
-                    .domain(acquisitionExtentByMonth)
+                    .domain([0, acquisitionExtentByMonth[1]])
                     .range([height - margin.bottom - 200, margin.top])
 
-                const colorScale2 = d3.scaleSequential()
+                const colorScale2 = d3.scaleOrdinal()
                     .domain(monthsAndValues.map(d => d.name))
-                    .interpolator(d3.interpolatePlasma)
+                    // .interpolator(d3.interpolatePlasma)
+                    .range(['#555555', '#1DA1F2', '#FF9900', '#0096D6', '#0F9D58', '#F25022', '#000000', '#E53238', '#006699'])
 
 
                 // Select the SVG
@@ -202,6 +204,7 @@
                         .attr('width', xscale2.bandwidth())
                         .attr('height', d => height - yscale2(d.value) - 200)
                         .attr('fill', d => colorScale2(d.name))
+                        
                 }
                 drawBars()
                 
