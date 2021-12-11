@@ -177,7 +177,7 @@
                 const colorScale2 = d3.scaleOrdinal()
                     .domain(monthsAndValues.map(d => d.name))
                     // .interpolator(d3.interpolatePlasma)
-                    .range(['#555555', '#1DA1F2', '#FF9900', '#0096D6', '#0F9D58', '#F25022', '#000000', '#E53238', '#006699'])
+                    .range(['red', 'orange', 'purple', 'green', 'yellow', 'blue'])
 
 
                 // Select the SVG
@@ -241,19 +241,24 @@
                     const acquisitions = data.filter(acquisition => acquisition["Acquisition Year"] === year)
                     return acquisitions.length
                 }
-
-                // Create an object with unique parent companies
-                const yearsAndValues = Array.from(new Set(data.map(acquisition => acquisition["Acquisition Year"]))).map(name => {
-                    return {name, value: 0}
-                })
-                // Add acquisition counts to the object
-                yearsAndValues.forEach((year) => year.value = getAcquisitionCountByYear(data, year.name))
+                
 
                 const parseTime = d3.timeParse('%Y')
                 const filteredData = data.filter(d => d["Acquisition Year"] !== "-")
                 filteredData.forEach(d => d.date = parseTime(d["Acquisition Year"]))
+
+                // Create an object with unique parent companies
+                const yearsAndValues = filteredData.map(d => {
+                    return {date: d.date, value: 0, year: d["Acquisition Year"]}
+                })
+                // Add acquisition counts to the object
+                yearsAndValues.forEach((year) => year.value = getAcquisitionCountByYear(data, year.year))
+                console.log("years and values", yearsAndValues)
+
+
                 // Find the extents of the dates
-                const dateExtent = d3.extent(filteredData, d => d.date)
+                const dateExtent = d3.extent(yearsAndValues, d => d.date)
+                console.log("date", filteredData)
                 // x scale 
                 const xscale3 = d3.scaleTime() // Make a time scale!
                     .domain(dateExtent)
@@ -268,8 +273,14 @@
 
                 // line generator
                 const linegen = d3.line()
-                    .x(d => xscale3(d.name))
-                    .y(d => yscale3(d.value))
+                    .x(d => {
+                        console.log("x", xscale3(d.date), d.date)
+                        return xscale3(d.date)
+                    })
+                    .y(d => {
+                        // console.log("y", yscale3(d.value))
+                        return yscale3(d.value)
+                    })
                     .curve(d3.curveLinear)
 
 
@@ -313,7 +324,7 @@
                     .data(yearsAndValues)
                     .enter()
                     .append('circle')
-                    .attr('cx', d => xscale3(d.name))
+                    .attr('cx', d => xscale3(d.date))
                     .attr('cy', d => yscale3(d.value))
                     .attr('r', 3)
 
